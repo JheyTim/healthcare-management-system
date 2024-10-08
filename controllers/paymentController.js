@@ -25,6 +25,15 @@ exports.processPayment = async (req, res) => {
     billing.paymentDate = new Date();
     await billing.save();
 
+    const io = req.app.get('io');
+
+    // Emit event to notify payment processed
+    io.emit('paymentProcessed', {
+      billingId: billing._id,
+      status: billing.status,
+      amount: billing.amount,
+    });
+
     res.json({ message: 'Payment successful', billing });
   } catch (error) {
     res.status(500).json({ message: 'Payment processing error', error });

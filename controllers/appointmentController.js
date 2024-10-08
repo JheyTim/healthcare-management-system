@@ -57,6 +57,15 @@ exports.updateAppointment = async (req, res) => {
 
     appointment.status = status || appointment.status;
     await appointment.save();
+
+    const io = req.app.get('io');
+
+    // Emit event to notify about the status change
+    io.emit('appointmentStatusChanged', {
+      appointmentId: appointment._id,
+      status: appointment.status,
+    });
+
     res.json(appointment);
   } catch (error) {
     res.status(500).json({ message: 'Error updating appointment', error });
