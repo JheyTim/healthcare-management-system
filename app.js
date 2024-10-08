@@ -27,15 +27,13 @@ app.use('/api/payment', paymentRoutes);
 io.on('connection', (socket) => {
   console.log('New client connected');
 
-  // Listen for events like appointment status update or payment notification
-  socket.on('appointmentStatusChanged', (data) => {
-    io.emit('appointmentStatusChanged', data); // Notify all clients
+  // Listen for the user joining their personal room
+  socket.on('joinRoom', (userId) => {
+    socket.join(userId); // The user joins a room based on their ID
+    console.log(`User with ID ${userId} joined their room`);
   });
 
-  socket.on('paymentProcessed', (data) => {
-    io.emit('paymentProcessed', data); // Notify all clients
-  });
-
+  // Handle disconnect
   socket.on('disconnect', () => {
     console.log('Client disconnected');
   });

@@ -60,8 +60,13 @@ exports.updateAppointment = async (req, res) => {
 
     const io = req.app.get('io');
 
-    // Emit event to notify about the status change
-    io.emit('appointmentStatusChanged', {
+    // Emit an event to the specific doctor and patient
+    io.to(appointment.doctor._id.toString()).emit('appointmentStatusChanged', {
+      appointmentId: appointment._id,
+      status: appointment.status,
+    });
+
+    io.to(appointment.patient._id.toString()).emit('appointmentStatusChanged', {
       appointmentId: appointment._id,
       status: appointment.status,
     });

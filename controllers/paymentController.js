@@ -27,8 +27,14 @@ exports.processPayment = async (req, res) => {
 
     const io = req.app.get('io');
 
-    // Emit event to notify payment processed
-    io.emit('paymentProcessed', {
+    // Emit an event to the specific doctor and patient
+    io.to(billing.doctor._id.toString()).emit('paymentProcessed', {
+      billingId: billing._id,
+      status: billing.status,
+      amount: billing.amount,
+    });
+
+    io.to(billing.patient._id.toString()).emit('paymentProcessed', {
       billingId: billing._id,
       status: billing.status,
       amount: billing.amount,
