@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const crypto = require('crypto');
 
+// console.log(crypto.randomBytes(32).toString('hex'));
+
 // Convert the 64-character hex string from the environment variable to a 32-byte buffer
 const encryptionKey = Buffer.from(process.env.ENCRYPTION_KEY, 'hex');
 
