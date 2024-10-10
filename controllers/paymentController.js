@@ -1,11 +1,15 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Billing = require('../models/billing');
+const sendSMS = require('../utils/sms');
+const sendEmail = require('../utils/email');
 
 exports.processPayment = async (req, res) => {
   const { billingId, paymentMethodId } = req.body;
 
   try {
-    const billing = await Billing.findById(billingId);
+    const billing = await Billing.findById(billingId)
+      .populate('doctor')
+      .populate('patient');
 
     if (!billing || billing.status !== 'pending') {
       return res.status(400).json({ message: 'Invalid bill or already paid' });
@@ -39,6 +43,28 @@ exports.processPayment = async (req, res) => {
       status: billing.status,
       amount: billing.amount,
     });
+
+    // Send email notification to both the doctor and patient
+    sendEmail(
+      billing.doctor.email,
+      'Payment Processed',
+      `Payment for bill ${billing._id} has been processed.`
+    );
+    sendEmail(
+      billing.patient.email,
+      'Payment Confirmation',
+      `Your payment for bill ${billing._id} has been successfully processed.`
+    );
+
+    // Send SMS notifications to both the doctor and patient
+    sendSMS(
+      billing.doctor.phone,
+      `Payment for bill ${billing._id} has been processed.`
+    );
+    sendSMS(
+      billing.patient.phone,
+      `Your payment for bill ${billing._id} has been successfully processed.`
+    );
 
     res.json({ message: 'Payment successful', billing });
   } catch (error) {

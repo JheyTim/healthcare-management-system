@@ -1,4 +1,6 @@
 const Appointment = require('../models/appointment');
+const sendEmail = require('../utils/email');
+const sendSMS = require('../utils/sms');
 
 // Schedule a new appointment (Patients)
 exports.createAppointment = async (req, res) => {
@@ -49,7 +51,9 @@ exports.updateAppointment = async (req, res) => {
   const { status } = req.body;
 
   try {
-    const appointment = await Appointment.findById(req.params.id);
+    const appointment = await Appointment.findById(req.params.id)
+      .populate('doctor')
+      .populate('patient');
 
     if (!appointment) {
       return res.status(404).json({ message: 'Appointment not found' });
@@ -70,6 +74,28 @@ exports.updateAppointment = async (req, res) => {
       appointmentId: appointment._id,
       status: appointment.status,
     });
+
+    // Send email notification to both the doctor and patient
+    sendEmail(
+      appointment.doctor.email,
+      'Appointment Status Update',
+      `Appointment ${appointment._id} status has been updated to ${status}.`
+    );
+    sendEmail(
+      appointment.patient.email,
+      'Appointment Status Update',
+      `Your appointment ${appointment._id} status has been updated to ${status}.`
+    );
+
+    // Send SMS notifications to both the doctor and patient
+    sendSMS(
+      appointment.doctor.phone,
+      `Appointment ${appointment._id} status has been updated to ${status}.`
+    );
+    sendSMS(
+      appointment.patient.phone,
+      `Your appointment ${appointment._id} status has been updated to ${status}.`
+    );
 
     res.json(appointment);
   } catch (error) {
