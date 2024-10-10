@@ -1,4 +1,5 @@
 const Patient = require('../models/Patient');
+const logAction = require('../utils/auditLogger');
 
 // Create a new patient record (Only for doctors)
 exports.createPatient = async (req, res) => {
@@ -63,6 +64,9 @@ exports.updatePatient = async (req, res) => {
     patient.prescriptions = prescriptions || patient.prescriptions;
 
     await patient.save();
+
+    // Log the update action
+    logAction(req.user._id, 'UPDATE', 'patient', patient._id);
 
     res.json(patient);
   } catch (error) {

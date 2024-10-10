@@ -1,6 +1,7 @@
 const Appointment = require('../models/appointment');
 const sendEmail = require('../utils/email');
 const sendSMS = require('../utils/sms');
+const logAction = require('../utils/auditLogger');
 
 // Schedule a new appointment (Patients)
 exports.createAppointment = async (req, res) => {
@@ -61,6 +62,9 @@ exports.updateAppointment = async (req, res) => {
 
     appointment.status = status || appointment.status;
     await appointment.save();
+
+    // Log the update action
+    logAction(req.user._id, 'UPDATE', 'appointment', appointment._id);
 
     const io = req.app.get('io');
 

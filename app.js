@@ -8,6 +8,7 @@ const patientRoutes = require('./routes/patient');
 const appointmentRoutes = require('./routes/appointment');
 const billingRoutes = require('./routes/billing');
 const paymentRoutes = require('./routes/payment');
+const auditRoutes = require('./routes/auditLog');
 
 connectDB();
 
@@ -22,6 +23,7 @@ app.use('/api/patients', patientRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/billing', billingRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/audit', auditRoutes);
 
 // Socket.IO connection event
 io.on('connection', (socket) => {

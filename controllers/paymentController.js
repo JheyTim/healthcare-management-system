@@ -2,6 +2,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Billing = require('../models/billing');
 const sendSMS = require('../utils/sms');
 const sendEmail = require('../utils/email');
+const logAction = require('../utils/auditLogger');
 
 exports.processPayment = async (req, res) => {
   const { billingId, paymentMethodId } = req.body;
@@ -28,6 +29,9 @@ exports.processPayment = async (req, res) => {
     billing.status = 'paid';
     billing.paymentDate = new Date();
     await billing.save();
+
+    // Log the payment action
+    logAction(req.user._id, 'PAY', 'billing', billing._id);
 
     const io = req.app.get('io');
 
