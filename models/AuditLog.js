@@ -24,4 +24,8 @@ const auditLogSchema = new mongoose.Schema({
   },
 });
 
+auditLogSchema.index({ user: 1 });
+auditLogSchema.index({ action: 1 });
+auditLogSchema.index({ resource: 1 });
+
 module.exports = mongoose.model('AuditLog', auditLogSchema);

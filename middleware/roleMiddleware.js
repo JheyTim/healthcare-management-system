@@ -1,4 +1,4 @@
-exports.roleMiddleware = (requiredRoles = []) => {
+const roleMiddleware = (requiredRoles = []) => {
   return (req, res, next) => {
     const userRole = req.user.role;
     if (requiredRoles.length && !requiredRoles.includes(userRole)) {
@@ -9,3 +9,5 @@ exports.roleMiddleware = (requiredRoles = []) => {
     next();
   };
 };
+
+module.exports = roleMiddleware

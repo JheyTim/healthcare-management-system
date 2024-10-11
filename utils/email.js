@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // Function to send email
-exports.sendEmail = (to, subject, text) => {
+const sendEmail = (to, subject, text) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to,
@@ -26,3 +26,5 @@ exports.sendEmail = (to, subject, text) => {
     }
   });
 };
+
+module.exports = sendEmail

@@ -9,6 +9,7 @@ const appointmentRoutes = require('./routes/appointment');
 const billingRoutes = require('./routes/billing');
 const paymentRoutes = require('./routes/payment');
 const auditRoutes = require('./routes/auditLog');
+const errorHandler = require('./middleware/errorHandler');
 
 connectDB();
 
@@ -24,6 +25,7 @@ app.use('/api/appointments', appointmentRoutes);
 app.use('/api/billing', billingRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/audit', auditRoutes);
+app.use(errorHandler);
 
 // Socket.IO connection event
 io.on('connection', (socket) => {

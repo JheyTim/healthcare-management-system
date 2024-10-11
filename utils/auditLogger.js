@@ -1,6 +1,6 @@
 const AuditLog = require('../models/AuditLog');
 
-exports.logAction = async (userId, action, resource, resourceId) => {
+const logAction = async (userId, action, resource, resourceId) => {
   try {
     const log = new AuditLog({
       user: userId,
@@ -15,3 +15,5 @@ exports.logAction = async (userId, action, resource, resourceId) => {
     console.error('Error logging action:', error);
   }
 };
+
+module.exports = logAction
