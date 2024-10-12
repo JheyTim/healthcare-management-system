@@ -1,6 +1,8 @@
 const jwt = require('jsonwebtoken');
+const speakeasy = require('speakeasy');
 const User = require('../models/User');
 const logger = require('../utils/logger');
+const sendEmail = require('../utils/email');
 
 exports.register = async (req, res) => {
   const { name, email, password, role } = req.body;
@@ -44,6 +46,41 @@ exports.login = async (req, res) => {
 
     logger.info(`User ${email} logged in successfully`);
 
+    // Generate a 2FA code and send it via email
+    const token = speakeasy.totp({
+      secret: process.env.TOTP_SECRET,
+      encoding: 'base32',
+    });
+
+    sendEmail(user.email, 'Your 2FA Code', `Your 2FA code is: ${token}`);
+
+    res.json({
+      message: '2FA code sent. Please check your email.',
+      userId: user._id,
+    });
+  } catch (error) {
+    logger.error(`Login error: ${error.message}`);
+    res.status(500).json({ message: 'Error logging in', error });
+  }
+};
+
+exports.verify2FA = async (req, res) => {
+  const { userId, code } = req.body;
+
+  try {
+    const verified = speakeasy.totp.verify({
+      secret: process.env.TOTP_SECRET,
+      encoding: 'base32',
+      token: code,
+      window: 2,
+    });
+
+    if (!verified) {
+      return res.status(400).json({ message: 'Invalid 2FA code' });
+    }
+
+    const user = await User.findById(userId);
+
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
@@ -51,9 +88,9 @@ exports.login = async (req, res) => {
         expiresIn: '1h',
       }
     );
-    res.json({ token });
+
+    res.json({ token, message: 'Login successful' });
   } catch (error) {
-    logger.error(`Login error: ${error.message}`);
-    res.status(500).json({ message: 'Error logging in', error });
+    res.status(500).json({ message: '2FA verification failed', error });
   }
 };
