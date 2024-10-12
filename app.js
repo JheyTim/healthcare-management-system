@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const socketIo = require('socket.io');
 const http = require('http');
+const cron = require('node-cron');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth');
 const patientRoutes = require('./routes/patient');
@@ -10,6 +11,7 @@ const billingRoutes = require('./routes/billing');
 const paymentRoutes = require('./routes/payment');
 const auditRoutes = require('./routes/auditLog');
 const errorHandler = require('./middleware/errorHandler');
+const AuditLog = require('./models/AuditLog');
 
 connectDB();
 
@@ -45,6 +47,21 @@ io.on('connection', (socket) => {
 
 // Emit updates
 app.set('io', io);
+
+// Cron job to delete old audit logs (older than 6 months)
+cron.schedule('0 0 * * *', async () => {
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+  try {
+    const result = await AuditLog.deleteMany({
+      timestamp: { $lt: sixMonthsAgo },
+    });
+    console.log(`Deleted ${result.deletedCount} old audit logs.`);
+  } catch (error) {
+    console.error('Error deleting old audit logs:', error);
+  }
+});
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
