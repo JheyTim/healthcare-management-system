@@ -2,6 +2,7 @@ const Appointment = require('../models/appointment');
 const sendEmail = require('../utils/email');
 const sendSMS = require('../utils/sms');
 const logAction = require('../utils/auditLogger');
+const logger = require('../utils/logger');
 
 // Schedule a new appointment (Patients)
 exports.createAppointment = async (req, res) => {
@@ -57,6 +58,9 @@ exports.updateAppointment = async (req, res) => {
       .populate('patient');
 
     if (!appointment) {
+      logger.warn(
+        `Attempt to update non-existing appointment ${req.params.id}`
+      );
       return res.status(404).json({ message: 'Appointment not found' });
     }
 
@@ -91,6 +95,10 @@ exports.updateAppointment = async (req, res) => {
       `Your appointment ${appointment._id} status has been updated to ${status}.`
     );
 
+    logger.info(
+      `User ${req.user.email} updated appointment ${appointment._id} status to ${status}`
+    );
+
     // Send SMS notifications to both the doctor and patient
     sendSMS(
       appointment.doctor.phone,
@@ -103,6 +111,7 @@ exports.updateAppointment = async (req, res) => {
 
     res.json(appointment);
   } catch (error) {
+    logger.error(`Error updating appointment: ${error.message}`);
     res.status(500).json({ message: 'Error updating appointment', error });
   }
 };
